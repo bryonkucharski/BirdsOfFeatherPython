@@ -1,22 +1,19 @@
 import os, sys
 parent_dir_name = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(parent_dir_name + "/ml")
-sys.path.insert(0, r'C:\Users\kucharskib\Documents\GitRepos\EmbeddedIntelligence')
 
-from machine_learning_classifiers import machine_learning_classifiers
 from feature_adder import FeatureAdder
-
+import utils as ml_utils
 from BirdsOfAFeatherNode import BirdsOfAFeatherNode
 import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 
 import pdb
 
 closed = set()
 node_count = 0
 goal_node = None
-
-classifiers = machine_learning_classifiers()
-
 
 
 def reset_depth_first_search_no_repeats():
@@ -92,7 +89,7 @@ def heuristic_search_pca(node):
     closed.add(node_str)
     return False
 
-def heuristic_search_network(node):
+def heuristic_search_network(model, node):
     global node_count, closed
     node_count += 1
     #pdb.set_trace()
@@ -110,7 +107,7 @@ def heuristic_search_network(node):
 
     for child in node.expand():
         children.append(child)
-        prob = calc_solveability_network(child)
+        prob = calc_solveability_network(model, child)
         probabilities.append(prob)
 
     
@@ -131,18 +128,18 @@ def heuristic_search_network(node):
     else:
         return False
     for child in sorted_children:
-        if heuristic_search_network(child):
+        if heuristic_search_network(model,child):
             return True
 
     closed.add(node_str)
     return False
         
 
-def calc_solveability_network(node):
+def calc_solveability_network(model, node):
     feat_adder = FeatureAdder()
     features = feat_adder.calc_features(node.__repr__().replace(" ", "").replace("\n",""))
     input = feat_adder.normalizeInput(features)
-    prob = classifiers.predict_model(input)
+    prob = model.predict(np.array([input]))
     
     return float(prob)
 
@@ -215,6 +212,9 @@ def experiment2():
     separated_flocks = []
     total_nodes = 0
     average_nodes = 0
+
+    fh = open('Experiment2DFSResults.txt', 'a') 
+
     for seed in range(start_seed, start_seed + num_seeds):
         print('Seed {}: '.format(seed), end='')
         node = BirdsOfAFeatherNode.create_initial(seed)
@@ -228,6 +228,7 @@ def experiment2():
             solvable = depth_first_search_no_repeats(node)
         if solvable:
             print('solved in ' + str(node_count) + ' nodes.  ')
+            fh.write(str(seed) + "," + str(node_count) + "\n" )
             num_solved += 1
         else:
             unsolvable.append(seed)
@@ -240,6 +241,8 @@ def experiment2():
     print('    Separated flocks: ', separated_flocks)
     print('          Unsolvable: ', unsolvable)
 
+    fh.close()
+
 def experiment3(train = False):
     start_seed = int(input('Start seed? '))
     num_seeds = int(input('How many seeds? '))
@@ -251,13 +254,17 @@ def experiment3(train = False):
 
     if train:
     
-        classifiers.load_dataset(
+        x_train, y_train = ml_utils.load_dataset(
                             path_to_numpy + r'\boaf-data-0-100_normalized_x_train.npy',
-                            path_to_numpy + r'\boaf-data-0-100_normalized_y_train.npy',
+                            path_to_numpy + r'\boaf-data-0-100_normalized_y_train.npy')
+
+        x_valid, y_valid =  ml_utils.load_dataset(                   
                             path_to_numpy + r'\boaf-data-0-100_normalized_x_valid.npy',
                             path_to_numpy + r'\boaf-data-0-100_normalized_y_valid.npy')
 
-        classifiers.CustomDeepModel(input_size = (22,),
+        scores, model = ml_utils.CustomDeepModel(
+                            x_train,y_train,x_valid,y_valid,
+                            input_size = (22,),
                             num_layers = 4,
                             num_hidden_units = [512,256,30,20],
                             num_outputs = 1,
@@ -272,8 +279,8 @@ def experiment3(train = False):
                             model_name="../models/experiment3_model.h5"
                             )
     else:
-        classifiers.load_model("../models/experiment3_model.h5")
-
+        model = ml_utils.load_trained_model("../models/experiment3_model.h5")
+    fh = open('Experiment3NNResults.txt', 'a') 
     for seed in range(start_seed, start_seed + num_seeds):
         print('Seed {}: '.format(seed), end='')
         node = BirdsOfAFeatherNode.create_initial(seed)
@@ -285,10 +292,10 @@ def experiment3(train = False):
             solvable = False
             separated_flocks.append(seed)
         else:
-            solvable = heuristic_search_network(node)
+            solvable = heuristic_search_network(model, node)
         if solvable:
             print('solved in ' + str(node_count) + ' nodes. ')
-           
+            fh.write(str(seed) + "," + str(node_count) + "\n" )
             num_solved += 1
         else:
             unsolvable.append(seed)
@@ -300,6 +307,7 @@ def experiment3(train = False):
     print('Unsolvable odd birds: ', odd_birds)
     print('    Separated flocks: ', separated_flocks)
     print('          Unsolvable: ', unsolvable)
+    fh.close()
 
 def experiment4():
     start_seed = int(input('Start seed? '))
@@ -308,6 +316,7 @@ def experiment4():
     unsolvable = []
     odd_birds = []
     separated_flocks = []
+    fh = open('Experiment4PCAResults.txt', 'a') 
 
     for seed in range(start_seed, start_seed + num_seeds):
         print('Seed {}: '.format(seed), end='')
@@ -323,7 +332,7 @@ def experiment4():
             solvable = heuristic_search_pca(node)
         if solvable:
             print('solved in ' + str(node_count) + ' nodes. ')
-           
+            fh.write(str(seed) + "," + str(node_count) + "\n" ) 
             num_solved += 1
         else:
             unsolvable.append(seed)
@@ -336,14 +345,70 @@ def experiment4():
     print('    Separated flocks: ', separated_flocks)
     print('          Unsolvable: ', unsolvable)
 
+    fh.close()
 
+def plotNode(filename):
+    data = open(filename,'r').read()
+    lines = data.split("\n")
+    xs = []
+    ys = []
 
+    for line in lines:
+        if len(line) > 1:
+            #epoch,total_reward = line.split(',')
+            x,y = line.split(',')
+            x = int(x)
+            y = int(y)
+           
+            xs.append(x)
+            ys.append(y)
+    plt.title(filename)
+    plt.xlabel("Seed")
+    plt.ylabel("Total Number of Nodes")
+    plt.plot(xs,ys, color = 'r')
+    plt.show()
+
+def plotNodes(filenames):
+    i = 0
+    patches = []
+    for file in filenames:
+        print(file)
+        
+        data = open(file,'r').read()
+        lines = data.split("\n")
+        xs = []
+        ys = []
+        colors = ['r','g','b']
+   
+        for line in lines:
+            if len(line) > 1:
+                #epoch,total_reward = line.split(',')
+                x,y = line.split(',')
+                x = int(x)
+                y = int(y)
+            
+                xs.append(x)
+                ys.append(y)
+
+        plt.legend()
+        patch = mpatches.Patch(color=colors[i], label=file)
+        patches.append(patch)
+        plt.xlabel("Seed")
+        plt.ylabel("Total Number of Nodes")
+        plt.plot(xs,ys, color = colors[i])
+        i+= 1
+    plt.legend(handles=patches)
+    plt.show()
 if __name__ == '__main__':
     # test_random_solve()
-   # experiment1()  # TWN: ran on my laptop in 1m27.726s, whereas original distributed Java version ran in 31.553s
-    #experiment2()
-    #experiment3(False)
-    experiment4()
+    #experiment1()  # TWN: ran on my laptop in 1m27.726s, whereas original distributed Java version ran in 31.553s
+    #experiment2() #36222
+    #experiment3(True) #98051
+    #experiment4() #173384
+    #plotNodes('Experiment2DFSResults.txt')
+    #plotNodes('Experiment3NNResults.txt')
+    #plotNodes(['Experiment4PCAResults.txt']) 
+    plotNodes(['Experiment2DFSResults.txt','Experiment3NNResults.txt','Experiment4PCAResults.txt']  )
 
 
 

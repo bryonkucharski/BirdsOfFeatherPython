@@ -33,9 +33,16 @@ classifiers.CustomDeepModel(input_size = (22,),
                             loss = 'binary_crossentropy',
                             optimizer = 'adam',
                             learning_rate = .005,
-                            epochs = 1000, 
-                            batch_size = 100
+                            epochs = 10, 
+                            batch_size = 100,
+                            load_model=True,
+                            save_model = True,
+                            model_name = 'test.h5'
                             )
+
+
+
+
 '''
 
 classifiers.XGBoost()
