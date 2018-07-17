@@ -20,10 +20,10 @@ class BirdsOfAFeatherNode(SearchNode):
 
     prev_move = ''
 
-
-
+    def __init__(self):
+        super(BirdsOfAFeatherNode,self).__init__()
+   
     @classmethod
-
     def create_initial(cls, seed=random.randint(0, sys.maxsize), rows=4, cols=4):
 
         """
@@ -139,7 +139,39 @@ class BirdsOfAFeatherNode(SearchNode):
         return children
 
 
+    def get_legal_moves(self):
+        
+        moves = []
+        for r in range(len(self.grid)):
+            for c1 in range(len(self.grid[0]) - 1):
+                for c2 in range(c1 + 1, len(self.grid[0])):
+                    if self.is_legal_move(r, c1, r, c2):
+                        moves.append([r, c1, r, c2])
+                        moves.append([r, c2, r, c1])
 
+        # for each column pair of cards, collect legal children moves
+
+        for c in range(len(self.grid[0])):
+            for r1 in range(len(self.grid) - 1):
+                for r2 in range(r1 + 1, len(self.grid)):
+                    if self.is_legal_move(r1, c, r2, c):
+                        moves.append([r1, c, r2, c])
+                        moves.append([r2, c, r1, c])
+
+        return moves
+
+    def game_result(self):
+        
+        if self.is_goal():
+            return 1
+        elif (len(self.get_legal_moves()) == 0):
+            return -1
+        else:
+            return None
+
+    def is_game_over(self):
+        return self.game_result() != None
+        
     def is_legal_move(self, row1, col1, row2, col2):
 
         """

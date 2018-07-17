@@ -9,6 +9,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 
+from MCTS import MonteCarloTreeSearch
+from MCTSNode import MonteCarloTreeSearchNode
+
 import pdb
 
 closed = set()
@@ -21,7 +24,6 @@ def reset_depth_first_search_no_repeats():
     closed = set()
     node_count = 0
     goal_node = None
-
 
 def depth_first_search_no_repeats(node):
     global closed, node_count, goal_node
@@ -51,6 +53,8 @@ def heuristic_search_pca(node):
 
     if node.is_goal():
         return True
+
+    
     
     node_str = repr(node)
     if node_str in closed:
@@ -92,6 +96,7 @@ def heuristic_search_pca(node):
 def heuristic_search_network(model, node):
     global node_count, closed
     node_count += 1
+
     #pdb.set_trace()
     #print(node_count)
 
@@ -164,6 +169,45 @@ def pca_equation(input):
             + (0.0934*input[16]) + (0.1218*input[17]) + (0.1028*input[18]) + (0.1566*input[19]) + (-0.0029*input[20]) + (-0.0095*input[21]))
 
 
+def MCTS(input_node, num_sim):
+    global closed, node_count, goal_node
+    node_count += 1
+    '''
+    if node.is_mcts_goal():
+        goal_node = node
+        return True
+
+    
+    node_str = repr(node)
+    if node_str in closed:
+        return False
+    print(node)
+    mcts = MonteCarloTreeSearch(node)
+    best_index = mcts.best_action(num_sim)
+    child = root.children[best_index]
+    
+    if MCTS(child,num_sim):
+        return True
+
+    closed.add(node_str)
+    return False'''
+
+
+    node = input_node
+    while True:
+        print(repr(node) + "\n")
+        if node.is_mcts_goal():
+            goal_node = node
+            print("Goal Found")
+            return True
+
+        if node.is_terminal_node():
+            print("Not Found")
+            return False
+
+
+        mcts = MonteCarloTreeSearch(node)
+        node = mcts.best_action(num_sim)
 
 
 
@@ -346,7 +390,47 @@ def experiment4():
     print('          Unsolvable: ', unsolvable)
 
     fh.close()
+def experiment5(num_sims):
+    '''
+    MCTS for range of nodes 
+    '''
+    start_seed = int(input('Start seed? '))
+    num_seeds = int(input('How many seeds? '))
+    num_solved = 0
+    unsolvable = []
+    odd_birds = []
+    separated_flocks = []
+    fh = open('Experiment5MCTSResults_' + str(num_sims) + '.txt', 'a') 
 
+    for seed in range(start_seed, start_seed + num_seeds):
+        print('Seed {}: '.format(seed), end='')
+        node = BirdsOfAFeatherNode.create_initial(seed)
+        root = MonteCarloTreeSearchNode(state = node, parent = None)
+        #print(node)
+        if node.has_odd_bird():
+            solvable = False
+            odd_birds.append(seed)
+        elif node.has_separated_flock():
+            solvable = False
+            separated_flocks.append(seed)
+        else:
+            solvable = MCTS(root,num_sims)
+        if solvable:
+            print('solved')
+            fh.write("solve: " + str(seed) + "\n" ) 
+            num_solved += 1
+        else:
+            unsolvable.append(seed)
+            print('unsolvable seed {}.'.format(seed))
+            print(node)
+    print('Average Number of Nodes Across ' + str(num_solved) + 'nodes: ' + str(node_count/num_solved))
+    print('Seeds {}-{}: {} solved, {} not solvable'.format(start_seed, start_seed + num_seeds - 1, num_solved,
+                                                           num_seeds - num_solved))
+    print('Unsolvable odd birds: ', odd_birds)
+    print('    Separated flocks: ', separated_flocks)
+    print('          Unsolvable: ', unsolvable)
+
+    fh.close()
 def plotNode(filename):
     data = open(filename,'r').read()
     lines = data.split("\n")
@@ -403,12 +487,14 @@ if __name__ == '__main__':
     # test_random_solve()
     #experiment1()  # TWN: ran on my laptop in 1m27.726s, whereas original distributed Java version ran in 31.553s
     #experiment2() #36222
-    #experiment3(True) #98051
+    #experiment3(False) #98051
     #experiment4() #173384
+    experiment5(160000)
     #plotNodes('Experiment2DFSResults.txt')
     #plotNodes('Experiment3NNResults.txt')
     #plotNodes(['Experiment4PCAResults.txt']) 
-    plotNodes(['Experiment2DFSResults.txt','Experiment3NNResults.txt','Experiment4PCAResults.txt']  )
+    #plotNodes(['Experiment2DFSResults.txt','Experiment3NNResults.txt','Experiment4PCAResults.txt']  )
+    
 
 
 
