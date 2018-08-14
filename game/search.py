@@ -421,9 +421,10 @@ def experiment5(num_sims):
             num_solved += 1
         else:
             unsolvable.append(seed)
+            fh.write("unsolved: " + str(seed) + "\n" )
             print('unsolvable seed {}.'.format(seed))
             print(node)
-    print('Average Number of Nodes Across ' + str(num_solved) + 'nodes: ' + str(node_count/num_solved))
+    #print('Average Number of Nodes Across ' + str(num_solved) + 'nodes: ' + str(node_count/num_solved))
     print('Seeds {}-{}: {} solved, {} not solvable'.format(start_seed, start_seed + num_seeds - 1, num_solved,
                                                            num_seeds - num_solved))
     print('Unsolvable odd birds: ', odd_birds)
@@ -489,7 +490,7 @@ if __name__ == '__main__':
     #experiment2() #36222
     #experiment3(False) #98051
     #experiment4() #173384
-    experiment5(160000)
+    experiment5(10)
     #plotNodes('Experiment2DFSResults.txt')
     #plotNodes('Experiment3NNResults.txt')
     #plotNodes(['Experiment4PCAResults.txt']) 

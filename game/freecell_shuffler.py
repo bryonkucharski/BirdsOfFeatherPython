@@ -39,8 +39,7 @@ def get_deck_str(random_seed):
 
 if __name__ == '__main__':
     seed = int(argv[1]) if len(argv) == 2 else 617
-    print("Hand", seed)
     deck = deal(seed)
     show(deck)
-    print(get_deck_str(seed))
+  
 

@@ -90,5 +90,3 @@ def get_shuffle(seed):
     """Return a list of Cards (to be treated as a stack) that is associated with the given Microsoft
      FreeCell deal seed."""
     return [STR_CARD_DICT[card_str] for card_str in freecell_shuffler.get_deck_str(seed)]
-
-print(get_shuffle(1))

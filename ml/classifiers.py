@@ -10,7 +10,7 @@ classifiers = machine_learning_classifiers()
 path_to_numpy = r'C:\Users\kucharskib\Documents\GitRepos\BirdsOfFeatherPython\data\numpy'
 
 
-classifiers.load_dataset(
+utils.load_dataset(
     path_to_numpy + r'\boaf-data-0-100_normalized_x_train.npy',
     path_to_numpy + r'\boaf-data-0-100_normalized_y_train.npy',
     path_to_numpy + r'\boaf-data-0-100_normalized_x_valid.npy',
@@ -24,7 +24,7 @@ classifiers.load_dataset(
     path_to_numpy + r'\bof-1-10000_normalized_y_valid.npy')
 '''
 
-classifiers.CustomDeepModel(input_size = (22,),
+utils.CustomDeepModel(input_size = (22,),
                             num_layers = 4,
                             num_hidden_units = [512,256,30,20],
                             num_outputs = 1,

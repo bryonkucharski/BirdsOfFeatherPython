@@ -1,4 +1,5 @@
 import os, sys
+import pdb
 parent_dir_name = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(parent_dir_name + "/game")
 
@@ -13,11 +14,11 @@ class MonteCarloTreeSearch:
 
 
     def best_action(self, simulations_number):
-        for _ in range(0, simulations_number):          
+        for i in range(0, simulations_number):      
             v = self.tree_policy()
             reward = v.rollout()
             v.backpropagate(reward)
-            #print(reward)
+            print(reward)
         # exploitation only
         return self.root.best_child(c_param = 0.)
 
@@ -34,11 +35,10 @@ class MonteCarloTreeSearch:
 
 #state = np.zeros((3,3))
 #initial_board_state = TicTacToeGameState(state = state, next_to_move = 1)
-'''
-inital_state = BirdsOfAFeatherNode.create_initial(0)  # (367297990)
 
+inital_state = BirdsOfAFeatherNode.create_initial(0)  # (367297990)
 root = MonteCarloTreeSearchNode(state = inital_state, parent = None)
 mcts = MonteCarloTreeSearch(root)
-best_node = mcts.best_action(1)
+best_node = mcts.best_action(1600)
 print(best_node, best_node.q, best_node.n)
-'''
+

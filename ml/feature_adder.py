@@ -101,7 +101,6 @@ class FeatureAdder():
 
         np.save("../data/numpy/boaf-min-data", min)
         np.save("../data/numpy/boaf-max-data", max)
-        
 
     def calc_features(self,node_str):
         
@@ -171,9 +170,8 @@ class FeatureAdder():
         results_array = np.append(results_array,[mostRepeatedRank,mostRepeatedSuit])
         
         return results_array
-   
-       
-    def normalizeInput(self,input):
+
+    def normalizeNewInput(self,input):
         min = np.load("../data/numpy/boaf-min-data.npy")
         max = np.load("../data/numpy/boaf-max-data.npy")
 
