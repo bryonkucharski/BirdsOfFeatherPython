@@ -37,7 +37,7 @@ def load_dataset(x_name, y_name):
 
     return x, y
 
-def CustomDeepModel(x_train,y_train,x_valid,y_valid,input_size,num_layers, num_hidden_units,num_outputs,output_activation,hidden_activation, loss, optimizer,learning_rate,epochs, batch_size, save_model = False,load_model = False, model_name = ''):
+def RunCustomDeepModel(x_train,y_train,x_valid,y_valid,input_size,num_layers, num_hidden_units,num_outputs,output_activation,hidden_activation, loss, optimizer,learning_rate,epochs, batch_size, save_model = False,load_model = False, model_name = ''):
         '''
         Assumes data is already preprocessed with mean = 0 and std = 1
         '''
@@ -94,7 +94,7 @@ def custom_Deep_Model(input_size, num_layers, num_hidden_units,num_outputs,outpu
     model.add(Dense(num_outputs, activation = output_activation))
 
     model.compile(loss=loss,optimizer=opt, metrics=['accuracy'])
-    print(model.summary())
+    #print(model.summary())
     return model
 
 def load_trained_model(path):

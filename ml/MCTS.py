@@ -35,10 +35,10 @@ class MonteCarloTreeSearch:
 
 #state = np.zeros((3,3))
 #initial_board_state = TicTacToeGameState(state = state, next_to_move = 1)
-
+'''
 inital_state = BirdsOfAFeatherNode.create_initial(0)  # (367297990)
 root = MonteCarloTreeSearchNode(state = inital_state, parent = None)
 mcts = MonteCarloTreeSearch(root)
 best_node = mcts.best_action(1600)
 print(best_node, best_node.q, best_node.n)
-
+'''
