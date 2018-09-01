@@ -18,6 +18,8 @@ import pdb
 
 closed = set()
 node_count = 0
+h_count = 0
+d_count = 0
 goal_node = None
 seed = 0
 
@@ -169,8 +171,8 @@ def heuristic_search_16_dfs(model_16_only,node):
         use dfs
     '''
 
-    global node_count, closed
-    node_count += 1
+    global node_count, closed, h_count, d_count
+    
 
     #pdb.set_trace()
     #print(node_count)
@@ -186,25 +188,27 @@ def heuristic_search_16_dfs(model_16_only,node):
         return False
 
     if num_cards < 16:
-        print("num_cards: " + str(num_cards) +" now running dfs")
+        d_count += 1
+        print("num_cards: " + str(num_cards) +" now running dfs, count " + str(d_count) +","+ str(d_count) +","+ str(node_count))
         for child in node.expand():
             if depth_first_search_no_repeats(child):
                 return True
     else:
+        h_count += 1
+        node_count += 1
         probabilities = []
         children = []
-        print("num_cards: " + str(num_cards) +" now running LR")
+        print("num_cards: " + str(num_cards) +" now running LR, count:" + str(d_count) +", "+str(h_count)+","+ str(node_count))
         for child in node.expand():
             children.append(child)
             #find prob of this child
             feat_adder = FeatureAdder()
-            features = feat_adder.calc_features(node.__repr__().replace(" ", "").replace("\n",""))
+            features = feat_adder.calc_features(child.__repr__().replace(" ", "").replace("\n",""))
             features = feat_adder.feature_engineer(features)
             input = feat_adder.normalizeNewInput(features)
-            prob = model_16_only.predict(input)
-
+            prob = model_16_only.predict_proba(input)
             #append to all probabilities
-            probabilities.append(prob)
+            probabilities.append(prob[0][1]) #append the probability of it being solvable
 
 
         if len(children) > 0:
@@ -217,8 +221,6 @@ def heuristic_search_16_dfs(model_16_only,node):
 
             sorted_children = unzipped[0]
             sorted_probabilites = unzipped[1]
-
-            #sorted_children = children
             
         else:
             return False
@@ -235,7 +237,7 @@ def heuristic_search_8_dfs(model_8_plus,node):
     else
         use dfs
     '''
-    global node_count, closed, seed
+    global node_count, closed, seed, h_count, d_count
     node_count += 1
 
     #pdb.set_trace()
@@ -252,11 +254,15 @@ def heuristic_search_8_dfs(model_8_plus,node):
         return False
 
     if num_cards < 8:
+        d_count += 1
+        #print("num_cards: " + str(num_cards) +" now running dfs, count " + str(d_count) +","+ str(h_count)+","+ str(node_count))
         #print("num_cards: " + str(num_cards) +" now running dfs")
         for child in node.expand():
             if depth_first_search_no_repeats(child):
                 return True
     else:
+        h_count += 1
+        #print("num_cards: " + str(num_cards) +" now running LR, count:" + str(d_count) +", "+str(h_count)+ ","+ str(node_count))
         probabilities = []
         children = []
         #print("num_cards: " + str(num_cards) +" now running LR")
@@ -264,13 +270,13 @@ def heuristic_search_8_dfs(model_8_plus,node):
             children.append(child)
             #find prob of this child
             feat_adder = FeatureAdder()
-            features = feat_adder.calc_features(node.__repr__().replace(" ", "").replace("\n",""))
+            features = feat_adder.calc_features(child.__repr__().replace(" ", "").replace("\n",""))
             features = feat_adder.feature_engineer(features)
             input = feat_adder.normalizeNewInput(features)
-            prob = model_8_plus.predict(input)
+            prob = model_8_plus.predict_proba(input)
 
             #append to all probabilities
-            probabilities.append(prob)
+            probabilities.append(prob[0][1])
 
 
         if len(children) > 0:
@@ -412,7 +418,6 @@ def experiment1():
                                                            num_seeds - num_solved))
     print('          Unsolvable: ', unsolvable)
 
-
 def experiment2():
     '''
     DFS provided by Professor Neller
@@ -426,6 +431,7 @@ def experiment2():
     total_nodes = 0
     average_nodes = 0
 
+    open('Experiment2DFSResults.txt', 'w').close() #resets the text file
     fh = open('Experiment2DFSResults.txt', 'a') 
 
     for seed in range(start_seed, start_seed + num_seeds):
@@ -458,7 +464,7 @@ def experiment2():
 
 def experiment3(train = False):
     '''
-    NN Heuristic using all cards model
+    OLD!! NN Heuristic using all cards model
     '''
     start_seed = int(input('Start seed? '))
     num_seeds = int(input('How many seeds? '))
@@ -526,7 +532,7 @@ def experiment3(train = False):
     fh.close()
 def experiment4():
     '''
-    PCA using all cards pca equation !!OLD
+    OLD!! PCA using all cards pca equation
     '''
     start_seed = int(input('Start seed? '))
     num_seeds = int(input('How many seeds? '))
@@ -705,7 +711,7 @@ def experiment7(train=True):
     fh.close()
 def experiment8(train=True):
     '''
-    Logistic Regression with 16 cards, DFS for the rest
+    Logistic Regression with 8+ cards, DFS for the rest
     '''
     start_seed = int(input('Start seed? '))
     num_seeds = int(input('How many seeds? '))
@@ -821,13 +827,14 @@ if __name__ == '__main__':
     #experiment3(False) #98051
     #experiment4() #173384
     #experiment5(10)
+    #experiment7(True)
     experiment8(True)
     #print(convert_nodestr_to_num_cards("----------------------6H--------"))
     #plotNodes('Experiment2DFSResults.txt')
     #plotNodes('Experiment3NNResults.txt')
     #plotNodes(['Experiment4PCAResults.txt']) 
     #plotNodes(['Experiment2DFSResults.txt','Experiment3NNResults.txt','Experiment4PCAResults.txt']  )
-    plotNodes(['Experiment7_16_DFS_Results.txt','Experiment8_8_DFS_Results.txt'])
+    plotNodes(['Experiment8_8_DFS_Results.txt','Experiment7_16_DFS_Results.txt','Experiment2DFSResults.txt'])
     
     
 
